@@ -6,3 +6,6 @@ Enter `Machine Learning Intuitions` - which is a book I started to write that wi
 
 While not many of us will need to hand code an LSTM from scratch, understanding how hidden layers function as memory is very important to being able to deploy LSTM in the right places. 
 
+
+* [Chapter 1 - The Multi Layer Perceptron](perceptron/perceptron.md)
+* [Chapter 2 - Math for Machine Learning - 1](perceptron/math-for-machine-learning-1.md)
