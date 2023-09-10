@@ -10,7 +10,7 @@ The objective of this guide is not to build a production-quality neural network 
 * The mechanics of forward and backward propagation
 * How to train an MLP to make predictions
 
-We will initially focus on the practical implementation, glossing over the mathematics involved. Once we've built a foundational understanding, we'll circle back to delve into the mathematical details, ensuring a comprehensive grasp of what happens at each step. You can dig into all the math in [Math for Machine Learning 1](./math-for-machine-learning-1.md)
+We will initially focus on the practical implementation, glossing over the mathematics involved. Once we've built a foundational understanding, we'll circle back to delve into the mathematical details, ensuring a comprehensive grasp of what happens at each step. You can dig into all the math in [Math for Machine Learning 1](math-for-machine-learning-1.md)
 
 ## Weights and Biases: The Tuning Knobs of a Neural Network
 
@@ -367,7 +367,7 @@ Inside this loop, the following sequence of operations takes place:
     loss = self.mse(y, output)
     ```
    
-   See [Math For Machine Learning 1](./math-for-machine-learning-1.md) for a full discussion of Mean Squared Error
+   See [Math For Machine Learning 1](math-for-machine-learning-1.md) for a full discussion of Mean Squared Error
    
 
 3. **Backward Propagation**: This is where the network learns from its mistakes. The `backward_propagation` method adjusts the weights and biases in the network based on the calculated loss.
@@ -435,7 +435,7 @@ grad_weights = [np.zeros(w.shape) for w in self.weights]
 grad_biases = [np.zeros(b.shape) for b in self.biases]
 ```
 
-We refer to our adjustments as "gradients". These are partial derivatives. Don't worry if you don't understand that calculus yet, we'll explain it all in [Math for Machine Learning 1](./math-for-machine-learning-1.md). For right now just know
+We refer to our adjustments as "gradients". These are partial derivatives. Don't worry if you don't understand that calculus yet, we'll explain it all in [Math for Machine Learning 1](math-for-machine-learning-1.md). For right now just know
 we're going to do some math to understand the rate and direction of the error and we're going to call that a "gradient" and its purpose is so that we know how to adjust our weights and biases.
 
 2. Next up, we need to know how far off we are in our predictions. To do that we're going to simply get a difference and call it the delta:
@@ -742,7 +742,70 @@ Here we have an initial network of 5 for our 5 features and 1 output for our pri
 
 We then train and predict using the `generate_apartment_data` function.
 
-Here is an interesting result though, 1000 Epochs does not cut it:
+Notably 1000 Epoch's did not cut it. If you look closely at the `mlp.py` code base you will see I did two things:
 
+1) Implemented a load and save mechanism:
+
+```python
+    def save(self, filename):
+        model_dict = {
+            'layers': self.layers,
+            'weights': [w.tolist() for w in self.weights],
+            'biases': [b.tolist() for b in self.biases]
+        }
+        with open(filename, 'w') as f:
+            json.dump(model_dict, f)
+
+    @staticmethod
+    def load(filename):
+        with open(filename, 'r') as f:
+            model_dict = json.load(f)
+
+        layers = model_dict['layers']
+        weights = [np.array(w) for w in model_dict['weights']]
+        biases = [np.array(b) for b in model_dict['biases']]
+        model = MultiLevelPerceptron(layers)
+        model.weights = weights
+        model.biases = biases
+        return model
+```
+
+2) Implemented a patience routine so I could eject on long trainin if there wasn't any progress:
+
+```python
+   if epoch >= warm_up_epochs:
+   
+       if loss < best_val_loss:
+           best_val_loss = loss
+           patience_counter = 0  # Reset counter
+       else:
+           patience_counter += 1  # Increment counter
+   
+       if patience_counter >= patience_limit:
+           print("Early stopping due to lack of improvement.")
+           break
+```
+
+Using that I repeated trained the model over the course and eventually hit a place where I felt we were getting some 
+level of accuracy. Note these values are still scaled, I didn't re-inflate them:
+
+```
+Epoch 1490, Loss: 1.8130934430224454e-06
+Epoch 1500, Loss: 1.8131178623002446e-06
+Early stopping due to lack of improvement.
+We're trained, let's predict again!
+Trained: we generated an apartment of:   [0.57283212 0.         1.         0.375      0.25      ] . We expect price: 0.4596097349541452  but we predicted: [[0.42785248]]
+Trained: we generated an apartment of:   [0.51986331 0.25       0.5        1.         0.5       ] . We expect price: 0.512394521275702  but we predicted: [[0.47047719]]
+Trained: we generated an apartment of:   [0.50619393 1.         0.5        0.75       0.75      ] . We expect price: 0.7127969056820046  but we predicted: [[0.62890373]]
+Trained: we generated an apartment of:   [0.4839812 0.75      0.        0.5       1.       ] . We expect price: 0.5867943790297074  but we predicted: [[0.52685141]]
+Trained: we generated an apartment of:   [0.45621529 0.75       0.5        0.375      0.875     ] . We expect price: 0.5921340276399093  but we predicted: [[0.52617377]]
+Trained: we generated an apartment of:   [0.95130286 0.75       1.         0.         0.625     ] . We expect price: 1.0  but we predicted: [[0.85616143]]
+Trained: we generated an apartment of:   [0.27381461 0.75       0.         0.625      0.        ] . We expect price: 0.32604106370800023  but we predicted: [[0.30988269]]
+Trained: we generated an apartment of:   [1.    0.25  0.5   0.625 0.25 ] . We expect price: 0.859200099449619  but we predicted: [[0.75368795]]
+Trained: we generated an apartment of:   [0.17727467 0.25       0.         0.         0.75      ] . We expect price: 0.13030426679982002  but we predicted: [[0.15561974]]
+Trained: we generated an apartment of:   [0.    0.5   0.    0.    0.125] . We expect price: 0.0  but we predicted: [[0.03811865]]
+```
+
+This falls into the "good enough" from my perspective! 
 
 

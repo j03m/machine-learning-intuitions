@@ -1,7 +1,7 @@
 # Math For Machine Learning 1
 
 This article will review the various bits of math required for fully grasping
-what is happening in the [Multi-layered Perceptron (MLP)](./perceptron.md) 
+what is happening in the [Multi-layered Perceptron (MLP)](perceptron.md) 
 chapter. The MLP will form the foundation for the other chapters in this book
 but purposefully glosses over some of the mathematics to help the reader fully grasp
 conceptually what is happening in the perceptron code without getting lost in
