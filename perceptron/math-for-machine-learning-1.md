@@ -8,7 +8,7 @@ conceptually what is happening in the perceptron code without getting lost in
 the mechanics of partial derivatives and matrix transformations.
 
 However, in order to really progress in the field and to be able to digest and more
-importantly, debug some of the issues that arise in the field and an understanding of the 
+importantly, debug some of the issues that arise in the field an understanding of the 
 math is important. 
 
 Notably, this will cover the math from the MLP chapter. As we encounter new concepts
@@ -67,7 +67,7 @@ By understanding each component, you can better appreciate how MSE provides a co
 
 We'll need to understand this to understand some of the rules around derivatives in just a moment.
 
-The expression $\((x - y)^2\) is shorthand for \((x - y) \times (x - y)\). When you multiply these two binomials, you apply the distributive property, also known as the FOIL (First, Outer, Inner, Last) method in this context.
+The expression $\((x - y)^2\)$ is shorthand for $\((x - y) \times (x - y)\)$. When you multiply these two binomials, you apply the distributive property, also known as the FOIL (First, Outer, Inner, Last) method in this context.
 
 Here's how it works, step by step:
 
@@ -80,7 +80,7 @@ Now, sum these up: $\(x^2 + (-xy) + (-xy) + y^2\)$
 
 Combine like terms: $\(x^2 - 2xy + y^2\)$
 
-So, $\((x - y)^2 = x^2 - 2xy + y^2\)$
+So, $\(x - y)^2 = x^2 - 2xy + y^2)\$
 
 ## Derivatives
 
@@ -96,11 +96,11 @@ Imagine driving a car on a hilly road. The derivative would tell you how steep t
    \frac{d}{dx}(c) = 0
    \]$$
    
-2. **Power Rule**: The derivative of \( x^n \) is \( n \times x^{n-1} \). This rule allows you to find the derivative of any power of \( x \).
+2. **Power Rule**: The derivative of $\( x^n \)$ is $\( n \times x^{n-1} \)$. This rule allows you to find the derivative of any power of $\( x \)$.
 
-   \[
+   $$\[
    \frac{d}{dx}(x^n) = n \times x^{n-1}
-   \]
+   \]$$
 
 
 ## Partial Derivative and Gradients
@@ -118,8 +118,6 @@ So, if $\( \frac{\partial z}{\partial x} \)$ is positive at $\( (x_0, y_0, z_0) 
 In the context of neural networks, each weight and bias can be thought of as a coordinate in a high-dimensional space, and the partial derivatives help us understand how the error changes as we tweak each of these parameters.
 
 ![Partial Derivative](partial-derivative.png)
-
-Certainly, adding a section on gradients under "Partial Derivatives" can enhance the understanding of the topic. Here's how you could revise that section:
 
 ### Gradients: The Vector of Partial Derivatives
 
@@ -202,23 +200,23 @@ In calculus, the sum rule states that the derivative of a sum is the sum of the 
 
 As such the terms are:
 
-1. **First term \( y_{\text{pred}}^2 \)**: Using the power rule, the derivative is \( 2 \times y_{\text{pred}} \).
+1. **First term $\( y_{\text{pred}}^2 \)$**: Using the power rule, the derivative is $\( 2 \times y_{\text{pred}} \)$.
 
-2. **Second term \( -2y_{\text{pred}}y_{\text{true}} \)**: \( y_{\text{true}} \) is a constant with respect to \( y_{\text{pred}} \), so the derivative is \( -2 \times y_{\text{true}} \).
+2. **Second term $\( -2y_{\text{pred}}y_{\text{true}} \)$**: $\( y_{\text{true}} \)$ is a constant with respect to $\( y_{\text{pred}} \)$, so the derivative is $\( -2 \times y_{\text{true}} \)$.
 
-This one is weird. What do we mean `ytrue` is constant? This is because `ytrue` is the actual value we're trying to predict, and it doesn't change as we tweak our model parameters.Let's say $\( y_{\text{true}} = 3 \)$.
+This one is weird. What do we mean `ytrue` is constant? This is because `ytrue` is the actual value we're trying to predict, and it doesn't change as we tweak our model parameters. Let's say $\( y_{\text{true}} = 3 \)$.
 
 The term becomes $\( -2y_{\text{pred}} \times 3 \)$ or $\( -6y_{\text{pred}} \)$.
 
-Now, if we take the partial derivative of $\( -6y_{\text{pred}} \$ with respect to $\( y_{\text{pred}} \)$, we get $\( -6 \)$, which is the same as $\( -2 \times y_{\text{true}} \)$ (since $\( y_{\text{true}} = 3 \)$).
+Now, if we take the partial derivative of $\(-6y_{\text{pred}}\$ with respect to $\( y_{\text{pred}} \)$, we get $\( -6 \)$, which is the same as $\( -2 \times y_{\text{true}} \)$ since $\(y_{\text{true}}=3\)$.
 
-3. **Third term \( y_{\text{true}}^2 \)**: This term doesn't involve \( y_{\text{pred}} \), so its derivative is zero.
+3. **Third term $\( y_{\text{true}}^2 \)$**: This term doesn't involve $\( y_{\text{pred}} \)$, so its derivative is zero.
 
 Adding these up, we get:
 
-\[
+$$\[
 \frac{\partial L}{\partial y_{\text{pred}}} = 2y_{\text{pred}} - 2y_{\text{true}}
-\]
+\]$$
 
 ## Putting it together
 In a fully connected layer, the weighted sum $\( z \)$ for a neuron is calculated as:
