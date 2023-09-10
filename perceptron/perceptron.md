@@ -10,7 +10,7 @@ The objective of this guide is not to build a production-quality neural network 
 * The mechanics of forward and backward propagation
 * How to train an MLP to make predictions
 
-We will initially focus on the practical implementation, glossing over the mathematics involved. Once we've built a foundational understanding, we'll circle back to delve into the mathematical details, ensuring a comprehensive grasp of what happens at each step.
+We will initially focus on the practical implementation, glossing over the mathematics involved. Once we've built a foundational understanding, we'll circle back to delve into the mathematical details, ensuring a comprehensive grasp of what happens at each step. You can dig into all the math in [Math for Machine Learning 1](./math-for-machine-learning-1.md)
 
 ## Weights and Biases: The Tuning Knobs of a Neural Network
 
@@ -373,7 +373,8 @@ Inside this loop, the following sequence of operations takes place:
 3. **Backward Propagation**: This is where the network learns from its mistakes. The `backward_propagation` method adjusts the weights and biases in the network based on the calculated loss.
 
     ```python
-    self.backward_propagation(y, output, activations, learning_rate)
+    grad_weights, grad_biases = self.backward_propagation(y_val, y_pred, activations, zs)
+    self.update_parameters(grad_weights, grad_biases, learning_rate)
     ```
    Backward propagation is going to need its own section, so lets just wave our hands and assume some magic happens here. We'll go into detail below.
 
@@ -434,7 +435,7 @@ grad_weights = [np.zeros(w.shape) for w in self.weights]
 grad_biases = [np.zeros(b.shape) for b in self.biases]
 ```
 
-We refer to our adjustments as "gradients". These are partial derivatives. Don't worry if you don't understand that calculus yet, we'll explain it all. For right now just know
+We refer to our adjustments as "gradients". These are partial derivatives. Don't worry if you don't understand that calculus yet, we'll explain it all in [Math for Machine Learning 1](./math-for-machine-learning-1.md). For right now just know
 we're going to do some math to understand the rate and direction of the error and we're going to call that a "gradient" and its purpose is so that we know how to adjust our weights and biases.
 
 2. Next up, we need to know how far off we are in our predictions. To do that we're going to simply get a difference and call it the delta:
@@ -451,7 +452,7 @@ grad_weights[-1] = np.dot(delta, activations[-2].T)
 ```
 We then set our last set of biases and weights. For biases, we simply use the delta. For weights, the dot product here essentially computes the gradient for the weights connecting the second-to-last layer and the last layer (output layer). This gradient will tell us how much to adjust each weight during the update step.
 
-Let's get a feel for what is happening here. At the point `backward_propagation` is for the first time our input to the function representing a prediction might look like this:
+Let's get a feel for what is happening here. At the point `backward_propagation` is run for the first time our input to the function representing a prediction might look like this:
 
 ```
 >>> import numpy as np
@@ -684,38 +685,57 @@ Let's look at the code to generate an apartment:
 ```python
 def generate_apartment_data(num_samples=1000):
     # Initialize empty lists to hold our features and labels
-    features = []
+    square_feet = []
+    num_bedrooms = []
+    num_bathrooms = []
+    proximity_to_transit = []
+    neighborhood_quality = []
     labels = []
 
     # Generate features and labels
     for _ in range(num_samples):
-        square_feet = np.random.randint(500, 3001)
-        num_bedrooms = np.random.randint(0, 5)
-        num_bathrooms = np.random.randint(1, 4)
-        proximity_to_transit = np.random.randint(1, 11)
-        neighborhood_quality = np.random.randint(1, 11)
-
-        # Combine individual features into a single feature vector for each sample
-        feature_vector = [square_feet, num_bedrooms, num_bathrooms, proximity_to_transit, neighborhood_quality]
+        square_feet.append(np.random.randint(500, 3001))
+        num_bedrooms.append(np.random.randint(0, 5))
+        num_bathrooms.append(np.random.randint(1, 4))
+        proximity_to_transit.append(np.random.randint(1, 11))
+        neighborhood_quality.append(np.random.randint(1, 11))
 
         # Calculate label (price) based on the features
-        base_price = (square_feet * 1.5) + (num_bedrooms * 300) + (num_bathrooms * 200) + (
-                    proximity_to_transit * 40) + (neighborhood_quality * 50)
+        base_price = (square_feet[-1] * 1.5) + (num_bedrooms[-1] * 300) + (num_bathrooms[-1] * 200) + (
+                proximity_to_transit[-1] * 40) + (neighborhood_quality[-1] * 50)
 
         # Add random fluctuation between 0-10%
         fluctuation = np.random.uniform(0, 0.1)
         final_price = base_price * (1 + fluctuation)
 
-        features.append(feature_vector)
         labels.append(final_price)
 
+    if num_samples > 1:
+        # Scale each feature
+        square_feet = MultiLevelPerceptron.minmax_scale(np.array(square_feet), np.min(square_feet), np.max(square_feet))
+        num_bedrooms = MultiLevelPerceptron.minmax_scale(np.array(num_bedrooms), np.min(num_bedrooms),
+                                                         np.max(num_bedrooms))
+        num_bathrooms = MultiLevelPerceptron.minmax_scale(np.array(num_bathrooms), np.min(num_bathrooms),
+                                                          np.max(num_bathrooms))
+        proximity_to_transit = MultiLevelPerceptron.minmax_scale(np.array(proximity_to_transit),
+                                                                 np.min(proximity_to_transit),
+                                                                 np.max(proximity_to_transit))
+        neighborhood_quality = MultiLevelPerceptron.minmax_scale(np.array(neighborhood_quality),
+                                                                 np.min(neighborhood_quality),
+                                                                 np.max(neighborhood_quality))
+        labels = MultiLevelPerceptron.minmax_scale(labels, np.min(labels), np.max(labels))
+
+    # Assemble features back into a single array
+    features = np.column_stack((square_feet, num_bedrooms, num_bathrooms, proximity_to_transit, neighborhood_quality))
+
     return np.array(features), np.array(labels)
+
 ```
 
 That gives us our apartments, but now we need a new network architecture to accommodate the additional features:
 
 ```python
-mlp = MultiLevelPerceptron([5, 3, 3, 1])
+mlp = MultiLevelPerceptron([5, 10, 25, 10, 1])
 ```
 
 Here we have an initial network of 5 for our 5 features and 1 output for our price prediction. 
@@ -723,75 +743,6 @@ Here we have an initial network of 5 for our 5 features and 1 output for our pri
 We then train and predict using the `generate_apartment_data` function.
 
 Here is an interesting result though, 1000 Epochs does not cut it:
-
-```
-jmordetsky in ~/curriculum (main) > python3 perceptron/mlp.py --type complex
-Untrained: we generated an apartment of:   [[892   4   2  10   8]] . We expect price: [4108.57473279]  but we predicted: [[942.36023216]]
-Let's train! 
-Epoch 0, Loss: 0.005159165558553977
-Epoch 10, Loss: 0.006152482172549563
-Epoch 20, Loss: 0.006189230772048651
-Epoch 30, Loss: 0.006223526280184651
-Epoch 40, Loss: 0.00625568478919934
-
-Epoch 980, Loss: 0.007183852064893064
-Epoch 990, Loss: 0.007187396781743929
-```
-
-Here our loss went up :/ we weren't able to reduce it. 
-
-Our predictions get better, but we can't call them accurate. My goal is to atleast predict the correct 1000th place:
-
-```
-We're trained, let's predict again!
-Trained: we generated an apartment of:   [[1626    1    3    4    3]] . We expect price: [3786.0262463]  but we predicted: [[2575.88606236]]
-Trained: we generated an apartment of:   [[2486    2    3    7    2]] . We expect price: [5372.86306652]  but we predicted: [[3937.28568446]]
-Trained: we generated an apartment of:   [[1982    3    2    9    6]] . We expect price: [5372.42162031]  but we predicted: [[3145.89263443]]
-Trained: we generated an apartment of:   [[2844    0    3    1    9]] . We expect price: [5810.21848011]  but we predicted: [[4505.95657891]]
-Trained: we generated an apartment of:   [[1582    1    1    7    9]] . We expect price: [3900.49297262]  but we predicted: [[2516.61708312]]
-Trained: we generated an apartment of:   [[2568    3    1    6    8]] . We expect price: [5885.16101228]  but we predicted: [[4072.3133621]]
-Trained: we generated an apartment of:   [[2760    0    2    6    3]] . We expect price: [5155.23394852]  but we predicted: [[4373.10802135]]
-Trained: we generated an apartment of:   [[2407    4    1    7    1]] . We expect price: [5840.77828081]  but we predicted: [[3811.00517851]]
-Trained: we generated an apartment of:   [[876   4   2   6   2]] . We expect price: [3254.90222714]  but we predicted: [[1388.76776535]]
-Trained: we generated an apartment of:   [[963   3   3   3   1]] . We expect price: [3390.44788699]  but we predicted: [[1522.51111059]]
-```
-
-What do we do? Like a good athlete, we train harder! My assumptions here was that the increasing MSE indicated we didn't have enough complexity in the network to capture relationships in the data, so I bumped both the network complexity.
-
-However, I kept observing a flattening of the MSE. So I needed to implement `patience`.
-
-# Having some patience
-
-Patience as a mechanism to prevent overfitting by allowing the model to train for a few more epochs even when it seems like the performance is degrading. This is done to ensure that the model has genuinely stopped improving and is not just fluctuating.
-
-The augmented training routine:
-
-```python
-    def train(self, X, y, epochs, learning_rate=0.01, patience_limit=15):
-        best_val_loss = float('inf')
-        patience_counter = 0
-        for epoch in range(epochs):
-            for x_val, y_val in zip(X, y):
-                # sometimes storing the zs is useful for backpropagation. So, predict returns it
-                # but we don't need it here
-                y_pred, activations, _ = self.predict(x_val)
-                loss = self.calculate_loss(y_val, y_pred)
-                grad_weights, grad_biases = self.backward_propagation(y_val, y_pred, activations)
-                self.update_parameters(grad_weights, grad_biases, learning_rate)
-
-            if epoch % 10 == 0:
-                print(f"Epoch {epoch}, Loss: {loss}")
-
-            if loss < best_val_loss:
-                best_val_loss = loss
-                patience_counter = 0  # Reset counter
-            else:
-                patience_counter += 1  # Increment counter
-
-            if patience_counter >= patience_limit:
-                print("Early stopping due to lack of improvement.")
-                break
-```
 
 
 
