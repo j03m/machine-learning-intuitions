@@ -1,6 +1,6 @@
 import numpy as np
 import json
-
+from mlp_utils import mse
 _assert_nan = False
 
 
@@ -25,10 +25,6 @@ class MultiLevelPerceptron:
 
     def relu_derivative(self, z):
         return (z > 0).astype(float)
-
-    @staticmethod
-    def mse(y_true, y_pred):
-        return np.mean((y_true - y_pred) ** 2)
 
     def save(self, filename):
         model_dict = {
@@ -130,7 +126,7 @@ class MultiLevelPerceptron:
                 # sometimes storing the zs is useful for backpropagation. So, predict returns it
                 # but we don't need it here
                 y_pred, activations, zs = self.predict(x_val)
-                loss = self.mse(y_val, y_pred)
+                loss = mse(y_val, y_pred)
                 grad_weights, grad_biases = self.backward_propagation(y_val, y_pred, activations, zs)
                 self.update_parameters(grad_weights, grad_biases, learning_rate)
 

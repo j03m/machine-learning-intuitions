@@ -20,6 +20,10 @@ def generate_data(num_samples=1000):
     return X, y
 
 
+def mse(y_true, y_pred):
+    return np.mean((y_true - y_pred) ** 2)
+
+
 def generate_apartment_data(num_samples=1000):
     # Initialize empty lists to hold our features and labels
     square_feet = []
@@ -51,15 +55,15 @@ def generate_apartment_data(num_samples=1000):
         # Scale each feature
         square_feet = minmax_scale(np.array(square_feet), np.min(square_feet), np.max(square_feet))
         num_bedrooms = minmax_scale(np.array(num_bedrooms), np.min(num_bedrooms),
-                                                         np.max(num_bedrooms))
+                                    np.max(num_bedrooms))
         num_bathrooms = minmax_scale(np.array(num_bathrooms), np.min(num_bathrooms),
-                                                          np.max(num_bathrooms))
+                                     np.max(num_bathrooms))
         proximity_to_transit = minmax_scale(np.array(proximity_to_transit),
-                                                                 np.min(proximity_to_transit),
-                                                                 np.max(proximity_to_transit))
+                                            np.min(proximity_to_transit),
+                                            np.max(proximity_to_transit))
         neighborhood_quality = minmax_scale(np.array(neighborhood_quality),
-                                                                 np.min(neighborhood_quality),
-                                                                 np.max(neighborhood_quality))
+                                            np.min(neighborhood_quality),
+                                            np.max(neighborhood_quality))
         labels = minmax_scale(labels, np.min(labels), np.max(labels))
 
     # Assemble features back into a single array
