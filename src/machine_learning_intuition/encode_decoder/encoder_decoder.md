@@ -110,4 +110,3 @@ In this simple example, the size of 2 for the context vector was an arbitrary ch
 In machine translation tasks where the input could be a sentence with tens or even hundreds of words, the context vector often has a much higher dimensionality (e.g., 256, 512, or even more). This is because translating a sentence accurately requires understanding various nuances like context, tone, and semantics, which can be complex to capture.
 
 So, there's no strict rule for choosing the size of the context vector; it's often determined empirically based on the problem you're trying to solve and the data you have.
-

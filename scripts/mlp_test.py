@@ -57,7 +57,7 @@ if __name__ == "__main__":
         print("Let's train! ")
         X, y = generate_apartment_data(num_samples=2000)
 
-        mlp.train(X, y, epochs=100000, patience_limit=1000)
+        mlp.train(X, y, epochs=100000, patience_limit=500)
         mlp.save("./apartments.json")
         print("We're trained, let's predict again!")
         X_test, y_test = generate_apartment_data(num_samples=10)

@@ -1,1 +1,1 @@
-from .encoder-deco
+from .encoder_decoder import EncoderDecoder

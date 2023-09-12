@@ -1,17 +1,29 @@
 import numpy as np
 import json
-from mlp_utils import mse
+from .mlp_utils import mse
 _assert_nan = False
 
 
 # Adding assertions to check for NaN in weights and biases
 class MultiLevelPerceptron:
-    def __init__(self, layers):
+    def __init__(self, layers, activation="linear"):
         self.layers = layers
         self.weights = []
         self.biases = []
-        self.activation_function = self.linear
-        self.activation_derivative = self.linear_derivative
+        if activation == "linear":
+            self.activation_function = self.linear
+            self.activation_derivative = self.linear_derivative
+        elif activation == "sigmoid":
+            self.activation_function = self.sigmoid
+            self.activation_derivative = self.sigmoid_derivative
+        elif activation == "relu":
+            self.activation_function = self.relu
+            self.activation_derivative = self.relu_derivative
+        elif activation == "tahn":
+            self.activation_function = self.tahn
+            self.activation_derivative = self.tahn_derivative
+        else:
+            raise Exception("Unknown activation")
         self._initialize_weights_and_biases()
 
     def linear(self, x):
@@ -25,6 +37,18 @@ class MultiLevelPerceptron:
 
     def relu_derivative(self, z):
         return (z > 0).astype(float)
+
+    def sigmoid(self, x):
+        return 1 / (1 + np.exp(-x))
+
+    def sigmoid_derivative(self, z):
+        return z * (1 - z)
+
+    def tanh(self, x):
+        return np.tanh(x)
+
+    def tanh_derivative(self, z):
+        return 1 - (z ** 2)
 
     def save(self, filename):
         model_dict = {
@@ -52,8 +76,13 @@ class MultiLevelPerceptron:
         self.weights = []
         self.biases = []
         for i in range(len(self.layers) - 1):
+            # naive
             # weight_matrix = np.random.randn(self.layers[i + 1], self.layers[i])
-            weight_matrix = np.random.randn(self.layers[i + 1], self.layers[i]) * np.sqrt(2. / self.layers[i])
+            # He
+            # weight_matrix = np.random.randn(self.layers[i + 1], self.layers[i]) * np.sqrt(2. / self.layers[i])
+            # Xavier/Glordot
+            limit = np.sqrt(6 / (self.layers[i] + self.layers[i + 1]))
+            weight_matrix = np.random.uniform(-limit, limit, (self.layers[i + 1], self.layers[i]))
             self.weights.append(weight_matrix)
             bias_matrix = np.zeros((self.layers[i + 1], 1))
             self.biases.append(bias_matrix)
@@ -116,18 +145,18 @@ class MultiLevelPerceptron:
             for i, b in enumerate(zs):
                 assert not np.isnan(b).any(), f'NaN found in zs at index {i}'
 
-    def train(self, X, y, epochs, learning_rate=0.01, patience_limit=500, warm_up_epochs=500):
+    def train(self, X, y, epochs=1000, learning_rate=0.01, patience_limit=500, warm_up_epochs=500):
         best_val_loss = float('inf')
         patience_counter = 0
 
         for epoch in range(epochs):
 
-            for x_val, y_val in zip(X, y):
+            for x_val, y_true in zip(X, y):
                 # sometimes storing the zs is useful for backpropagation. So, predict returns it
                 # but we don't need it here
                 y_pred, activations, zs = self.predict(x_val)
-                loss = mse(y_val, y_pred)
-                grad_weights, grad_biases = self.backward_propagation(y_val, y_pred, activations, zs)
+                loss = mse(y_true, y_pred)
+                grad_weights, grad_biases = self.backward_propagation(y_true.reshape(-1, 1), y_pred, activations, zs)
                 self.update_parameters(grad_weights, grad_biases, learning_rate)
 
             if epoch % 10 == 0:
