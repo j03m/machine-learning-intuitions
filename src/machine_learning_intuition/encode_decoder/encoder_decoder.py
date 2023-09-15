@@ -1,7 +1,8 @@
-from ..perceptron import MultiLevelPerceptron, mlp_utils
+from ..perceptron import MultiLevelPerceptron
+from .. import utils
 import numpy as np
 
-mse = mlp_utils.mse
+mse = utils.mse
 
 
 class EncoderDecoder:
@@ -21,7 +22,7 @@ class EncoderDecoder:
         # return all relevant data for backward propagation and training
         return context_vector, output_seq, encoder_activations, decoder_activations, zs_encoder, zs_decoder
 
-    def backward_propagation(self, target_seq, output_seq, encoder_activations, decoder_activations, zs_encoder,
+    def backward_propagation(self, target_seq, output_seq, context_vector, encoder_activations, decoder_activations, zs_encoder,
                              zs_decoder):
         # data moves from encoder -> decoder so the decoder is output is last.
         # this augments the decode network first
@@ -29,13 +30,16 @@ class EncoderDecoder:
             target_seq, output_seq, decoder_activations, zs_decoder
         )
 
-        # Compute the gradient of the loss with respect to the context vector (output of the encoder)
-        # This will be the delta propagated back into the encoder.
-        context_delta = np.dot(self.decoder.weights[0].T, decoder_grad_biases[0])
+        # the mlp backprop looks like this:
+        # delta = np.dot(self.weights[-l + 1].T, delta) * self.activation_derivative(zs[-l])
+        # and biases are always set to delta. So below, decoder_grad_biases[0] is delta from the decoder
+        # we want the next weight
+        context_delta = np.dot(self.decoder.weights[0].T, decoder_grad_biases[0]) * self.decoder.activation_derivative(
+            zs_decoder[0])
 
         # Now back propagate through the encoder
         encoder_grad_weights, encoder_grad_biases = self.encoder.backward_propagation(
-            context_delta, encoder_activations[-1], encoder_activations, zs_encoder
+            context_delta, context_vector, encoder_activations, zs_encoder
         )
 
         return encoder_grad_weights, encoder_grad_biases, decoder_grad_weights, decoder_grad_biases
@@ -76,7 +80,7 @@ class EncoderDecoder:
                  encoder_grad_biases,
                  decoder_grad_weights,
                  decoder_grad_biases) = self.backward_propagation(
-                    y_true, y_pred, encoder_activations, decoder_activations, zs_encoder, zs_decoder
+                    y_true, y_pred, context_vector, encoder_activations, decoder_activations, zs_encoder, zs_decoder
                 )
                 self.update_parameters(decoder_grad_weights, decoder_grad_biases, encoder_grad_weights,
                                        encoder_grad_biases, learning_rate)

@@ -14,10 +14,44 @@ def minmax_scale(data, min_val, max_val):
     return (data - min_val) / (max_val - min_val)
 
 
+def scale_flatten(X, y):
+    # Flatten X and concatenate with y to find overall min and max
+    scale_me = np.concatenate([np.array(X).flatten(), np.array(y).flatten()])
+    overall_min = np.min(scale_me)
+    overall_max = np.max(scale_me)
+
+    # Assuming mlp_utils.minmax_scale scales the data in place
+    # Replace with your actual min-max scaling function if different
+    scaled_X = minmax_scale(X, overall_min, overall_max)
+    scaled_y = minmax_scale(y, overall_min, overall_max)
+
+    return scaled_X, scaled_y
+
 def generate_data(num_samples=1000):
     X = np.random.rand(num_samples)
     y = X * 100
     return X, y
+
+
+# todo change me to have a variable sequence length
+# and to generate different ops optionally +,-,*,/
+def generate_arithmetic_sequence_data(num_samples=1000):
+    X = []
+    y = []
+
+    for i in range(0, num_samples):
+        x1 = np.random.randint(1, 10)
+        x2 = np.random.randint(1, 10)
+        x3 = np.random.randint(1, 10)
+        x4 = np.random.randint(1, 10)
+
+        y1 = x1 + x2 + x3 + x4
+        X.append(np.array([x1, 0, x2, 0, x3, 0, x4]))
+        y.append(y1)
+    if num_samples > 1:
+        return scale_flatten(X, y)
+    else:
+        return X, y
 
 
 def mse(y_true, y_pred):

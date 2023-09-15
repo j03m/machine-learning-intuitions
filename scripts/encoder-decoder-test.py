@@ -1,19 +1,8 @@
 import argparse
-import os
-from machine_learning_intuition import EncoderDecoder, MultiLevelPerceptron, mlp_utils
-
-import numpy as np
-
-
-def generate_data(num_samples=1000, seq_len=5):
-    X = np.random.randint(1, 100, size=(num_samples, seq_len))
-    y = np.array([sorted(x) for x in X])
-    return X, y
-
+from machine_learning_intuition import EncoderDecoder, MultiLevelPerceptron, utils
 
 def predict_one(model):
-    X, y = generate_data(num_samples=1)
-    X, y = mlp_utils.scale_data(X, y)
+    X, y = utils.generate_arithmetic_sequence_data(num_samples=1)
     (_,
      output_seq,
      _,
@@ -27,13 +16,12 @@ def generate_and_predict(model):
     X, y, output_seq = predict_one(model)
     print(f"I am un trained. Given {X} I predicted: {output_seq}. We expected {y}")
 
-    X, y = generate_data(num_samples=2000)
-    X, y = mlp_utils.scale_data(X, y)
+    X, y = utils.generate_arithmetic_sequence_data(num_samples=1000)
     print("Let's train")
-    model.train(X, y, learning_rate=0.01, epochs=5000, patience_limit=500, warm_up_epochs=500)
+    model.train(X, y, learning_rate=0.01, epochs=2000, patience_limit=100, warm_up_epochs=500)
 
     X, y, output_seq = predict_one(model)
-    print(f"I am un trained. Given {X} I predicted: {output_seq}. We expected {y}")
+    print(f"I am trained. Given {X} I predicted: {output_seq}. We expected {y}")
 
 
 def main():
@@ -44,13 +32,21 @@ def main():
     args = parser.parse_args()
 
     if args.type == "create-train":
-        model = EncoderDecoder(encoder_layers=[5, 8, 8, 3], decoder_layers=[3, 8, 8, 5])
+        model = EncoderDecoder(encoder_layers=[7, 25, 3], decoder_layers=[3, 25, 1])
         generate_and_predict(model)
         model.save("sample")
     elif args.type == "load-train":
         model = EncoderDecoder.load("sample")
         generate_and_predict(model)
         model.save("sample")
+    else:
+        model = MultiLevelPerceptron([7, 25, 3, 1])
+        X, y = utils.generate_arithmetic_sequence_data()
+        print("Let's train")
+        model.train(X, y, learning_rate=0.01, epochs=5000, patience_limit=500, warm_up_epochs=500)
+        X, y = utils.generate_arithmetic_sequence_data(num_samples=1)
+        print(f"Perceptron, received {X}, predicted: {model.predict(X)[0]}, expected {y}")
+        model.save("sort.json")
 
 
 if __name__ == "__main__":

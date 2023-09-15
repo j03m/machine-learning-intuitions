@@ -1,7 +1,10 @@
 import numpy as np
 import json
-from .mlp_utils import mse
-_assert_nan = False
+import os
+from machine_learning_intuition.utils import mse
+
+_assert_nan = bool(os.environ.get('ASSERT_NAN', False))
+np.seterr(over='raise')
 
 
 # Adding assertions to check for NaN in weights and biases
@@ -10,6 +13,7 @@ class MultiLevelPerceptron:
         self.layers = layers
         self.weights = []
         self.biases = []
+        self.activation = activation
         if activation == "linear":
             self.activation_function = self.linear
             self.activation_derivative = self.linear_derivative
@@ -19,9 +23,9 @@ class MultiLevelPerceptron:
         elif activation == "relu":
             self.activation_function = self.relu
             self.activation_derivative = self.relu_derivative
-        elif activation == "tahn":
-            self.activation_function = self.tahn
-            self.activation_derivative = self.tahn_derivative
+        elif activation == "tanh":
+            self.activation_function = self.tanh
+            self.activation_derivative = self.tanh_derivative
         else:
             raise Exception("Unknown activation")
         self._initialize_weights_and_biases()
@@ -54,7 +58,8 @@ class MultiLevelPerceptron:
         model_dict = {
             'layers': self.layers,
             'weights': [w.tolist() for w in self.weights],
-            'biases': [b.tolist() for b in self.biases]
+            'biases': [b.tolist() for b in self.biases],
+            'activation': self.activation
         }
         with open(filename, 'w') as f:
             json.dump(model_dict, f)
@@ -67,7 +72,12 @@ class MultiLevelPerceptron:
         layers = model_dict['layers']
         weights = [np.array(w) for w in model_dict['weights']]
         biases = [np.array(b) for b in model_dict['biases']]
-        model = MultiLevelPerceptron(layers)
+        if 'activation' in model_dict:
+            activation = model_dict['activation']
+            model = MultiLevelPerceptron(layers, activation=activation)
+        else:
+            model = MultiLevelPerceptron(layers)
+
         model.weights = weights
         model.biases = biases
         return model
