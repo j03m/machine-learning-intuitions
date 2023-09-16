@@ -122,7 +122,7 @@ class MultiLevelPerceptron:
 
         return x, activations, zs
 
-    def backward_propagation(selrf, y_true, y_pred, activations, zs):
+    def backward_propagation(self, y_true, y_pred, activations, zs):
         grad_weights = [np.zeros(w.shape) for w in self.weights]
         grad_biases = [np.zeros(b.shape) for b in self.biases]
 

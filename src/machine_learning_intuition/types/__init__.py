@@ -1,1 +1,4 @@
-from .base import EvaluationFunction, PredictionArray
+from .base import (EvaluationFunction,
+                   NpArray,
+                   WeightsMatrix,
+                   ActivationFunction)
