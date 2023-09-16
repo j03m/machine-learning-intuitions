@@ -9,7 +9,7 @@ np.seterr(over='raise')
 
 # Adding assertions to check for NaN in weights and biases
 class MultiLevelPerceptron:
-    def __init__(self, layers, activation="linear"):
+    def __init__(self, layers, activation="linear", init=True):
         self.layers = layers
         self.weights = []
         self.biases = []
@@ -28,7 +28,8 @@ class MultiLevelPerceptron:
             self.activation_derivative = self.tanh_derivative
         else:
             raise Exception("Unknown activation")
-        self._initialize_weights_and_biases()
+        if init:
+            self._initialize_weights_and_biases()
 
     def linear(self, x):
         return x
@@ -74,9 +75,9 @@ class MultiLevelPerceptron:
         biases = [np.array(b) for b in model_dict['biases']]
         if 'activation' in model_dict:
             activation = model_dict['activation']
-            model = MultiLevelPerceptron(layers, activation=activation)
+            model = MultiLevelPerceptron(layers, activation=activation, init=False)
         else:
-            model = MultiLevelPerceptron(layers)
+            model = MultiLevelPerceptron(layer, init=False)
 
         model.weights = weights
         model.biases = biases

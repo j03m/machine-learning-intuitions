@@ -1,3 +1,13 @@
+2014 paper: https://arxiv.org/pdf/1409.3215.pdf
+
+gpt from scratch: https://jaykmody.com/blog/gpt-from-scratch/
+
+https://atcold.github.io/NYU-DLSP21/en/week08/08-3/
+
+https://github.com/eriklindernoren/ML-From-Scratch <- should be helpful
+
+https://ekamperi.github.io/machine%20learning/2021/01/21/encoder-decoder-model.html
+
 ### What is an Encoder-Decoder Architecture?
 
 An encoder-decoder architecture is a type of neural network design pattern that is commonly used in tasks like machine translation, sequence-to-sequence prediction, and many others. The architecture consists of two main parts:
