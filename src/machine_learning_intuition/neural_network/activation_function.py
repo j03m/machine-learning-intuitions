@@ -1,5 +1,4 @@
 from abc import ABC, abstractmethod
-from numpy import ndarray, float64
 from machine_learning_intuition.types import NpArray
 
 
@@ -11,6 +10,10 @@ class ActivationFunction(ABC):
     def derivative(self, x: NpArray) -> NpArray:
         raise NotImplementedError()
 
+    @property
+    def name(self):
+        raise NotImplementedError()
+
 
 class Linear(ActivationFunction):
     def __call__(self, x: NpArray) -> NpArray:
@@ -18,3 +21,11 @@ class Linear(ActivationFunction):
 
     def derivative(self, x: NpArray) -> NpArray:
         return 1
+
+    def name(self):
+        return "linear"
+
+
+all_activations = {
+    "linear": Linear
+}
