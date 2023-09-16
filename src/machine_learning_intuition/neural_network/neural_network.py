@@ -11,8 +11,8 @@ class NeuralNetwork:
 
     def __int__(self,
                 layers: List[int],
-                activation_functions: List[ActivationFunction] = None,
-                loss_function: Loss = MSE,
+                activation_functions: List[ActivationFunction] = None,  # type: ignore
+                loss_function: Loss = MSE,  # type: ignore
                 learning_rate: float = 0.01):
 
         self.loss_function = loss_function
@@ -105,3 +105,5 @@ class NeuralNetwork:
         for layer, weight, bias in zip(nn.layers, weights, biases):
             layer.weights = weight
             layer.bias = bias
+
+        return nn

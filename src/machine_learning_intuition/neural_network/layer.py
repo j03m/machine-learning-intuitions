@@ -29,16 +29,17 @@ class Layer():
         bias_matrix = np.zeros((self.next_units, 1))
         return bias_matrix
 
-    def forward_pass(self, x: NpArray) -> Tuple[NpArray, NpArray]:
+    def forward_pass(self, x: NpArray) -> NpArray:
         self.last_input = x
         z = x.dot(self.weights) + self.bias
         self.assert_nan(x, z)
         self.last_output = self.activation_function(z)
-        return self.last_output, z
+        return self.last_output
 
     def backwards_pass(self, gradient: NpArray) -> NpArray:
         assert self.last_input is not None
-        delta = gradient * self.activation_derivative(self.last_output)
+        assert self.last_output is not None
+        delta = gradient * self.activation_function.derivative(self.last_output)
         weights_gradient = self.last_input.T.dot(delta)
         bias_gradient = np.sum(delta, axis=0)
         self.weights -= self.learning_rate * weights_gradient
