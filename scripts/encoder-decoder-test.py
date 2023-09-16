@@ -1,15 +1,11 @@
 import argparse
 from machine_learning_intuition import EncoderDecoder, MultiLevelPerceptron, utils
 
+
 def predict_one(model):
     X, y = utils.generate_arithmetic_sequence_data(num_samples=1)
-    (_,
-     output_seq,
-     _,
-     _,
-     _,
-     _) = model.predict(X)
-    return X, y, output_seq
+    prediction, _, _ = model.predict(X)
+    return X, y, prediction
 
 
 def generate_and_predict(model):
@@ -40,7 +36,7 @@ def main():
         generate_and_predict(model)
         model.save("sample")
     else:
-        model = MultiLevelPerceptron([7, 25, 3, 1])
+        model = MultiLevelPerceptron([7, 25, 3, 3, 25, 1])
         X, y = utils.generate_arithmetic_sequence_data()
         print("Let's train")
         model.train(X, y, learning_rate=0.01, epochs=5000, patience_limit=500, warm_up_epochs=500)

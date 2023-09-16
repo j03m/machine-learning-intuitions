@@ -30,7 +30,7 @@ class EncoderDecoder():
         model = EncoderDecoder([], [], init=False)
         model.autoencoder = MultiLevelPerceptron.load(f"{prefix}_autoencoder.json")
 
-        encoder_length = len(model.autoencoder.layers) // 2  # Assuming encoder and decoder are of equal length
+        encoder_length = len(model.autoencoder.layers) // 2   # Assuming encoder and decoder are of equal length
         model.encoder = MultiLevelPerceptron(model.autoencoder.layers[:encoder_length], init=False)
         model.decoder = MultiLevelPerceptron(model.autoencoder.layers[encoder_length:], init=False)
 
