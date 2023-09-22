@@ -1,7 +1,7 @@
 from .layer import Layer
 from .activation_function import Linear, ActivationFunction, all_activations
 from .loss_function import MSE, Loss, all_loss_functions
-from typing import List
+from typing import List, Type
 from machine_learning_intuition.types import NpArray
 from numpy import float64
 import json
@@ -9,16 +9,16 @@ import json
 
 class NeuralNetwork:
 
-    def __int__(self,
-                layers: List[int],
-                activation_functions: List[ActivationFunction] = None,  # type: ignore
-                loss_function: Loss = MSE,  # type: ignore
-                learning_rate: float = 0.01):
+    def __init__(self,
+                 layers: List[int],
+                 activation_functions: List[Type[ActivationFunction]] = None,
+                 loss_function: Loss = MSE,  # type: ignore
+                 learning_rate: float = 0.01):
 
         self.loss_function = loss_function
 
         if activation_functions is None:
-            activation_functions = [Linear] * len(layers)
+            activation_functions = [Linear] * (len(layers) - 1)
 
         self.layers: List[Layer] = []
         self.layer_spec = layers
@@ -29,6 +29,7 @@ class NeuralNetwork:
             activation_function = activation_functions[i]
             layer = Layer(input_spec, output_spec, learning_rate, activation_function)
             self.layers.append(layer)
+        self.learning_rate = learning_rate
 
     def predict(self, input_: NpArray):
         layer_output = input_
@@ -103,7 +104,7 @@ class NeuralNetwork:
                            learning_rate=learning_rate)
 
         for layer, weight, bias in zip(nn.layers, weights, biases):
-            layer.weights = weight
-            layer.bias = bias
+            layer.weights = np.array(weight)
+            layer.bias = np.array(bias)
 
         return nn
