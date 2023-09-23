@@ -1,2 +1,2 @@
 from .base import (EvaluationFunction,
-                   NpArray)
+                   NpArray, NamedThing, export_named_thing)

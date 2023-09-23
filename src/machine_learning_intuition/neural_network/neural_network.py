@@ -1,9 +1,11 @@
 from .layer import Layer
-from .activation_function import Linear, ActivationFunction, all_activations
+from .activation_function import Linear, ActivationFunction, all_activation_functions
+from .initialization_function import InitFunction, He, all_init_functions
 from .loss_function import MSE, Loss, all_loss_functions
-from typing import List, Type
+from typing import List, Type, Union
 from machine_learning_intuition.types import NpArray
 from numpy import float64
+import numpy as np
 import json
 
 
@@ -11,23 +13,29 @@ class NeuralNetwork:
 
     def __init__(self,
                  layers: List[int],
-                 activation_functions: List[Type[ActivationFunction]] = None,
-                 loss_function: Loss = MSE,  # type: ignore
-                 learning_rate: float = 0.01):
+                 activation_functions: Union[List[ActivationFunction], None] = None,
+                 loss_function: Loss = MSE(),
+                 learning_rate: float = 0.01,
+                 init_functions: Union[List[InitFunction], None] = None):
 
         self.loss_function = loss_function
 
         if activation_functions is None:
-            activation_functions = [Linear] * (len(layers) - 1)
+            activation_functions = [Linear()] * (len(layers) - 1)
+
+        if init_functions is None:
+            init_functions = [He()] * (len(layers) - 1)
 
         self.layers: List[Layer] = []
         self.layer_spec = layers
         self.activation_spec = [act_func.name for act_func in activation_functions]
+        self.init_spec = [init_func.name for init_func in init_functions]
         for i in range(len(layers) - 1):
             input_spec = layers[i]
             output_spec = layers[i + 1]
             activation_function = activation_functions[i]
-            layer = Layer(input_spec, output_spec, learning_rate, activation_function)
+            init_function = init_functions[i]
+            layer = Layer(input_spec, output_spec, learning_rate, activation_function, init_function)
             self.layers.append(layer)
         self.learning_rate = learning_rate
 
@@ -37,7 +45,7 @@ class NeuralNetwork:
             layer_output = layer.forward_pass(layer_output)
         return layer_output
 
-    def train(self, x: NpArray, y: NpArray, epochs: int, patience_limit: int = 500, warm_up_epochs: int = 500,
+    def train(self, x: NpArray, y: NpArray, epochs: int = 1000, patience_limit: int = 500, warm_up_epochs: int = 500,
               verbose=True):
         # todo: should this be LAST value loss instead?
         best_val_loss = float64('inf')
@@ -45,6 +53,8 @@ class NeuralNetwork:
 
         for epoch in range(epochs):
             for x_val, y_true in zip(x, y):
+                x_val = x_val.reshape(-1, 1)
+                y_true = y_true.reshape(-1, 1)
                 y_pred = self.predict(x_val)
                 loss = self.loss_function(y_true, y_pred)
                 loss_gradient = self.loss_function.derivative(y_true, y_pred)
@@ -92,7 +102,8 @@ class NeuralNetwork:
             save_data = json.load(f)
 
         loss_function = all_loss_functions[save_data["loss"]]
-        activation_functions = [all_activations[name] for name in save_data["activation_functions"]]
+        activation_functions = [all_activation_functions[name]() for name in save_data["activation_functions"]]
+        init_functions = [all_init_functions[name]() for name in save_data["init_functions"]]
         layer_spec = save_data["layers"]
         learning_rate = save_data["learning_rate"]
         weights = save_data["weights"]
@@ -101,6 +112,7 @@ class NeuralNetwork:
         nn = NeuralNetwork(layer_spec,
                            loss_function=loss_function,
                            activation_functions=activation_functions,
+                           init_functions=init_functions,
                            learning_rate=learning_rate)
 
         for layer, weight, bias in zip(nn.layers, weights, biases):

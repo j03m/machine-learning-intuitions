@@ -32,6 +32,9 @@ def generate_data(num_samples=1000):
     y = X * 100
     return X, y
 
+def convert_samples_to_np_array(samples):
+    samples_np = np.array(samples)
+    return samples_np.reshape(-1, 1)
 
 # todo change me to have a variable sequence length
 # and to generate different ops optionally +,-,*,/

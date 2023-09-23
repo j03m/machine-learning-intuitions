@@ -1,10 +1,10 @@
+from machine_learning_intuition.utils import (generate_apartment_data, generate_data, scale_data,
+                                              convert_samples_to_np_array)
+from machine_learning_intuition.neural_network import NeuralNetwork, ReLU, Linear
 import argparse
 import os
-from machine_learning_intuition import MultiLevelPerceptron, utils
 
-generate_apartment_data = utils.generate_apartment_data
-generate_data = utils.generate_data
-scale_data = utils.scale_data
+save_point = "./nn-apartments.json"
 
 if __name__ == "__main__":
 
@@ -20,53 +20,57 @@ if __name__ == "__main__":
 
         X, y = scale_data(X, y)
 
+        X = convert_samples_to_np_array(X)
+        y = convert_samples_to_np_array(y)
+
         # Initialize and train the neural network
-        mlp = MultiLevelPerceptron([1, 4, 3, 2, 1])
-        mlp.activation_function = mlp.linear
-        mlp.activation_derivative = mlp.linear_derivative
+        nn = NeuralNetwork([1, 4, 3, 2, 1], activation_functions=[ReLU, ReLU, ReLU, Linear])
         X_test, y_test = generate_data(num_samples=1)
+        X_test = convert_samples_to_np_array(X_test)
+        y_test = convert_samples_to_np_array(y_test)
         print("Untrained: we generated:  ", X_test, ". We expect:", y_test, " but we predicted:",
-              mlp.predict(X_test)[0])
+              nn.predict(X_test)[0])
 
         print("Let's train! ")
-        mlp.train(X, y, epochs=1000, learning_rate=0.01)
+
+        nn.train(X, y)
 
         print("We're trained, let's predict again!")
         # Test the trained network
         for i in range(0, 10):
             X_test, y_test = generate_data(num_samples=1)
             print("Trained: we generated: ", X_test, ". We expect:", y_test, " and we predicted:",
-                  mlp.predict(X_test)[0])
+                  nn.predict(X_test)[0])
 
     elif args.type == "complex":
         # 5 inputs, 1 output
-        save_point = "./apartments.json"
+
         if os.path.exists(save_point):
             print("Loading the network.")
-            mlp = MultiLevelPerceptron.load(save_point)
+            nn = NeuralNetwork.load(save_point)
         else:
             print("New network")
-            mlp = MultiLevelPerceptron([5, 10, 25, 10, 1])
+            nn = NeuralNetwork([5, 10, 25, 10, 1])
 
         # Generate data
         X, y = generate_apartment_data(num_samples=1)
 
         print("Untrained: we generated an apartment of:  ", X, ". We expect price:", y, " but we predicted:",
-              mlp.predict(X)[0])
+              nn.predict(X)[0])
 
         print("Let's train! ")
         X, y = generate_apartment_data(num_samples=2000)
 
-        mlp.train(X, y, epochs=100000, patience_limit=500)
-        mlp.save("./apartments.json")
+        nn.train(X, y, epochs=100000, patience_limit=500)
+        nn.save(save_point)
         print("We're trained, let's predict again!")
         X_test, y_test = generate_apartment_data(num_samples=10)
         for i in range(0, 10):
             print("Trained: we generated an apartment of:  ", X_test[i], ". We expect price:", y_test[i],
                   " but we predicted:",
-                  mlp.predict(X_test[i])[0])
+                  nn.predict(X_test[i])[0])
     elif args.type == "load":
-        mlp = MultiLevelPerceptron.load("./apartments.json")
+        mlp = NeuralNetwork.load(save_point)
         X_test, y_test = generate_apartment_data(num_samples=10)
         for i in range(0, 10):
             print("Loaded! we generated an apartment of:  ", X_test[i], ". We expect price:", y_test[i],

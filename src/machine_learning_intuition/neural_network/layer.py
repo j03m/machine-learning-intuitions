@@ -2,14 +2,20 @@ import numpy as np
 from numpy import ndarray, float64
 from machine_learning_intuition.types import NpArray
 from .activation_function import ActivationFunction, Linear
-from typing import Optional, Tuple, Union
+from .initialization_function import InitFunction, He
+from typing import Optional
 import os
 
 gbl_assert_nan = bool(os.environ.get('ASSERT_NAN', False))
 
 
 class Layer():
-    def __init__(self, input_units: int, output_units:int, learning_rate: float = 0.01, activation_function: ActivationFunction = Linear):
+    def __init__(self,
+                 input_units: int,
+                 output_units: int,
+                 learning_rate: float = 0.01,
+                 activation_function: ActivationFunction = Linear(),
+                 init_function: InitFunction = He()):
         '''
         :param units: number of neurons
         :param input_shape: default is none set based on previous layer
@@ -18,25 +24,19 @@ class Layer():
         '''
         self.input_units = input_units
         self.output_units = output_units
-        self.weights = self.init_weights()
-        self.bias = self.init_bias()
         self.learning_rate = learning_rate
         self.last_input: Optional[NpArray] = None
         self.last_output: Optional[NpArray] = None
-        self.activation_function = activation_function()
-
-    @property
-    def input_shape(self):
-        return self._input_shape
+        self.activation_function = activation_function
+        self.init_function = init_function
+        self.weights = self.init_weights()
+        self.bias = self.init_bias()
 
     def init_weights(self) -> NpArray:
-        # Xavier/Glordot
-        limit = np.sqrt(6 / (self.input_units + self.output_units))
-        weights_matrix = np.random.uniform(-limit, limit, (self.input_units, self.output_units))
-        return weights_matrix
+        return self.init_function(self.input_units, self.output_units)
 
     def init_bias(self) -> NpArray:
-        bias_matrix = np.zeros((self.output_units))
+        bias_matrix = np.zeros(self.output_units)
         return bias_matrix
 
     def forward_pass(self, x: NpArray) -> NpArray:
@@ -55,7 +55,6 @@ class Layer():
         self.weights -= self.learning_rate * weights_gradient
         self.bias -= self.learning_rate * bias_gradient
         return delta.dot(self.weights.T)
-
 
     def assert_nan(self, x: NpArray, z: NpArray) -> None:
         if gbl_assert_nan:
