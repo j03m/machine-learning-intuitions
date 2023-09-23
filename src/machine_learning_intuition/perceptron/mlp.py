@@ -132,29 +132,13 @@ class MultiLevelPerceptron:
         grad_weights[-1] = np.dot(delta, activations[-2].T)
 
         for l in range(2, len(self.layers)):
-            delta = np.dot(self.weights[-l + 1].T, delta) * self.activation_derivative(zs[-l])
+            weights = self.weights[-l + 1]
+            weights_t = weights.T
+            delta = np.dot(weights_t, delta) * self.activation_derivative(zs[-l])
             grad_biases[-l] = delta
             grad_weights[-l] = np.dot(delta, activations[-l - 1].T)
 
         return grad_weights, grad_biases
-
-    def update_parameters(self, grad_weights, grad_biases, learning_rate):
-        self.weights = [w - learning_rate * gw for w, gw in zip(self.weights, grad_weights)]
-        self.biases = [b - learning_rate * gb for b, gb in zip(self.biases, grad_biases)]
-
-    def assert_nan(self, x, activations, zs):
-        if _assert_nan:
-            # Assertions to check for NaN in weights and biases
-            for i, w in enumerate(self.weights):
-                assert not np.isnan(w).any(), f'NaN found in weights at index {i}'
-            for i, b in enumerate(self.biases):
-                assert not np.isnan(b).any(), f'NaN found in biases at index {i}'
-            for i, b in enumerate(x):
-                assert not np.isnan(b).any(), f'NaN found in x at index {i}'
-            for i, b in enumerate(activations):
-                assert not np.isnan(b).any(), f'NaN found in activations at index {i}'
-            for i, b in enumerate(zs):
-                assert not np.isnan(b).any(), f'NaN found in zs at index {i}'
 
     def train(self, X, y, epochs=1000, learning_rate=0.01, patience_limit=500, warm_up_epochs=500):
         best_val_loss = float('inf')
@@ -184,3 +168,21 @@ class MultiLevelPerceptron:
                 if patience_counter >= patience_limit:
                     print("Early stopping due to lack of improvement.")
                     break
+
+    def update_parameters(self, grad_weights, grad_biases, learning_rate):
+        self.weights = [w - learning_rate * gw for w, gw in zip(self.weights, grad_weights)]
+        self.biases = [b - learning_rate * gb for b, gb in zip(self.biases, grad_biases)]
+
+    def assert_nan(self, x, activations, zs):
+        if _assert_nan:
+            # Assertions to check for NaN in weights and biases
+            for i, w in enumerate(self.weights):
+                assert not np.isnan(w).any(), f'NaN found in weights at index {i}'
+            for i, b in enumerate(self.biases):
+                assert not np.isnan(b).any(), f'NaN found in biases at index {i}'
+            for i, b in enumerate(x):
+                assert not np.isnan(b).any(), f'NaN found in x at index {i}'
+            for i, b in enumerate(activations):
+                assert not np.isnan(b).any(), f'NaN found in activations at index {i}'
+            for i, b in enumerate(zs):
+                assert not np.isnan(b).any(), f'NaN found in zs at index {i}'

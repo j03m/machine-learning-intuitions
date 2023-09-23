@@ -1,12 +1,15 @@
 from .layer import Layer
-from .activation_function import Linear, ActivationFunction, all_activation_functions
-from .initialization_function import InitFunction, He, all_init_functions
+from .activation_function import LeakyReLU, ActivationFunction, all_activation_functions
+from .initialization_function import InitFunction, XavierGlordotSimple, all_init_functions
 from .loss_function import MSE, Loss, all_loss_functions
-from typing import List, Type, Union
+from typing import List, Union, Any, Dict
 from machine_learning_intuition.types import NpArray
 from numpy import float64
 import numpy as np
 import json
+import os
+
+gbl_record_debug_data = bool(os.environ.get('RECORD_DEBUG', False))
 
 
 class NeuralNetwork:
@@ -21,11 +24,15 @@ class NeuralNetwork:
 
         self.loss_function = loss_function
         self.clipping = clipping
+        self.debug_values: Dict[int, List[Any]] = {}
+        self.current_epoch = -1
+
+        # this is dumb, move to .add_layer pattern
         if activation_functions is None:
-            activation_functions = [Linear()] * (len(layers) - 1)
+            activation_functions = [LeakyReLU()] * (len(layers) - 1)
 
         if init_functions is None:
-            init_functions = [He()] * (len(layers) - 1)
+            init_functions = [XavierGlordotSimple()] * (len(layers) - 1)
 
         self.layers: List[Layer] = []
         self.layer_spec = layers
@@ -47,22 +54,41 @@ class NeuralNetwork:
             layer_output = layer.forward_pass(layer_output)
         return layer_output
 
-    def train(self, x: NpArray, y: NpArray, epochs: int = 1000, patience_limit: int = 500, warm_up_epochs: int = 500,
-              verbose=True):
+    def transfer_weights(self, mlp: Any):
+        print(mlp.weights)
+
+    def collect_weights(self):
+        weights = []
+        bias = []
+        for layer in reversed(self.layers):
+            weights.append(layer.W)
+            bias.append(layer.w0)
+        return weights, bias
+
+    def train(self, x: NpArray, y: NpArray, epochs: int = 1000, patience_limit: int = 50, warm_up_epochs: int = 500,
+              verbosity: int = 1):
 
         best_val_loss = float64('inf')
         patience_counter = 0
 
         for epoch in range(epochs):
-            for x_val, y_true in zip(x, y):
+            self.current_epoch = epoch
+            for x_val, y_true, index in zip(x, y, range(0, len(x))):
                 x_val = x_val.reshape(-1, 1)
                 y_true = y_true.reshape(-1, 1)
                 y_pred = self.predict(x_val)
                 loss = self.loss_function(y_true, y_pred)
-                loss_gradient = self.loss_function.derivative(y_true, y_pred)
-                self.backwards_propagate(loss_gradient)
+                initial_gradient = self.loss_function.derivative(y_true, y_pred)
+                record = False
+                if index == len(x) - 1 and gbl_record_debug_data:
+                    record = True
 
-            if verbose and epoch % 10 == 0:
+                self.backwards_propagate(initial_gradient, record)
+
+            if verbosity > 1:
+                print(f"Epoch {epoch}, Loss: {loss}")
+
+            if verbosity == 1 and epoch % 10 == 0:
                 print(f"Epoch {epoch}, Loss: {loss}")
 
             if epoch >= warm_up_epochs:
@@ -73,16 +99,32 @@ class NeuralNetwork:
                     patience_counter += 1  # Increment counter
 
                 if patience_counter >= patience_limit:
-                    if verbose:
+                    if verbosity != 0:
                         print("Early stopping due to lack of improvement.")
                     break
 
-    def backwards_propagate(self, gradient: NpArray):
+    def backwards_propagate(self, gradient: NpArray, record=False):
+        layer_number = 0
         loss_gradient = gradient
-        if self.clipping is not None:
-            np.clip(loss_gradient, -self.clipping, self.clipping, out=loss_gradient)
         for layer in reversed(self.layers):
-            loss_gradient = layer.backwards_pass(loss_gradient)
+            loss_gradient = layer.backward_pass(loss_gradient)
+            if record:
+                pass
+                # self.record(layer_number, loss_gradient, layer.weights, layer.bias)
+            layer_number += 1
+
+    def record(self, layer_number: int, loss_gradient: NpArray, weights: NpArray, bias: NpArray):
+        if self.current_epoch not in self.debug_values:
+            self.debug_values[self.current_epoch] = []
+
+        self.debug_values[self.current_epoch].append(
+            {
+                "layer": layer_number,
+                "gradient": np.copy(loss_gradient),
+                "weights": np.copy(weights),
+                "bias": np.copy(bias)
+            }
+        )
 
     def save(self, filename):
         # save the layer specs

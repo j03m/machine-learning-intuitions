@@ -35,3 +35,18 @@ class ReLU(ActivationFunction):
 
     def name(self):
         return "relu"
+
+
+@export_named_thing(all_activation_functions)
+class LeakyReLU(ActivationFunction):
+    def __init__(self, alpha=0.01):
+        self.alpha = alpha
+
+    def __call__(self, x: NpArray) -> NpArray:
+        return np.where(x >= 0, x, self.alpha * x)
+
+    def derivative(self, x: NpArray) -> NpArray:
+        return np.where(x >= 0, 1, self.alpha)
+
+    def name(self):
+        return "leaky_relu"

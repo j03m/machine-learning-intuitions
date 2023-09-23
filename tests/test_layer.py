@@ -22,6 +22,17 @@ def test_forward_pass():
     assert np.allclose(output, expected_output, atol=1e-8)
 
 
+def test_batch_forward_pass():
+    layer = neural_network.Layer(5, 3)
+    input_ = np.random.uniform(-1, 1, (1, 5))
+    output = layer.forward_pass(input_)
+    assert output.shape == (1, 3)
+    input_ = np.random.uniform(-1, 1, (100, 5))
+    output = layer.forward_pass(input_)
+    assert output.shape == (100, 3)
+
+
+
 '''
 1. **Initial Setup**: Choose initial weights, biases, input, and gradient. 
     - `initial_weights = [[0.1, 0.2], [0.3, 0.4], [0.5, 0.6]]` (shape: 3x2)

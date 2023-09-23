@@ -20,7 +20,7 @@ class MSE(Loss):
         return np.mean((y_true - y_pred) ** 2)
 
     def derivative(self, y_true: NpArray, y_pred: NpArray) -> NpArray:
-        return 2 * (y_pred - y_true)
+        return -(y_true - y_pred)
 
     @property
     def name(self):

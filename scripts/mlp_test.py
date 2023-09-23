@@ -21,7 +21,7 @@ if __name__ == "__main__":
         X, y = scale_data(X, y)
 
         # Initialize and train the neural network
-        mlp = MultiLevelPerceptron([1, 4, 3, 2, 1])
+        mlp = MultiLevelPerceptron([1, 5, 5, 1])
         mlp.activation_function = mlp.linear
         mlp.activation_derivative = mlp.linear_derivative
         X_test, y_test = generate_data(num_samples=1)

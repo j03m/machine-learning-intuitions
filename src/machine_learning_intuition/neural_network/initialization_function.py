@@ -23,6 +23,17 @@ class XavierGlordot(InitFunction):
 
 
 @export_named_thing(all_init_functions)
+class XavierGlordotSimple(InitFunction):
+    def __call__(self, input_units: int, output_units: int) -> NpArray:
+        limit = np.sqrt(1 / input_units)
+        weights_matrix = np.random.uniform(-limit, limit, (input_units, output_units))
+        return weights_matrix
+
+    @property
+    def name(self):
+        return "xavier_glordot_simple"
+
+@export_named_thing(all_init_functions)
 class Zeros(InitFunction):
     def __call__(self, input_units: int, output_units: int) -> NpArray:
         return np.zeros((input_units, output_units))
@@ -52,6 +63,7 @@ class Lecun(InitFunction):
     @property
     def name(self):
         return "lecun"
+
 
 @export_named_thing(all_init_functions)
 class Random(InitFunction):

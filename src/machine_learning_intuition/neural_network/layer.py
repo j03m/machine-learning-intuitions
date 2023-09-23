@@ -4,7 +4,7 @@ from .activation_function import ActivationFunction, Linear
 from .initialization_function import InitFunction, He
 from typing import Optional, Union
 import os
-
+import math
 gbl_assert_nan = bool(os.environ.get('ASSERT_NAN', False))
 
 
@@ -26,7 +26,6 @@ class Layer():
         self.output_units = output_units
         self.learning_rate = learning_rate
         self.last_input: Optional[NpArray] = None
-        self.last_output: Optional[NpArray] = None
         self.activation_function = activation_function
         self.init_function = init_function
         self.clipping = clipping
@@ -37,36 +36,39 @@ class Layer():
         return self.init_function(self.input_units, self.output_units)
 
     def init_bias(self) -> NpArray:
-        bias_matrix = np.zeros(self.output_units)
+        bias_matrix = np.zeros((1,self.output_units))
         return bias_matrix
 
     def forward_pass(self, x: NpArray) -> NpArray:
         self.last_input = x
-        z = x.dot(self.weights) + self.bias
-        self.assert_nan(x, z)
-        self.last_output = self.activation_function(z)
-        return self.last_output
+        return x.dot(self.weights) + self.bias
 
-    def backwards_pass(self, gradient: NpArray) -> NpArray:
+    def backward_pass(self, gradient: NpArray) -> NpArray:
         assert self.last_input is not None
-        assert self.last_output is not None
-        delta = gradient * self.activation_function.derivative(self.last_output)
-        weights_gradient = self.last_input.T.dot(delta)
-        bias_gradient = np.sum(delta, axis=0)
-        self.weights -= self.learning_rate * weights_gradient
-        if self.clipping is not None:
-            np.clip(self.weights, -self.clipping, self.clipping, out=self.weights)
-        self.bias -= self.learning_rate * bias_gradient
-        self.assert_members_nan()
-        return delta.dot(self.weights.T)
+        weights_gradient = self.last_input.T.dot(gradient)
+        bias_gradient = np.sum(gradient, axis=0, keepdims=True)
+
+        # I cannot express enough the importance pf this line
+        # Here we capture the weights and use these weights our return operation
+        # against the gradient, NOT the adjusted weights
+        W = self.weights
+
+        self.weights = self.weights - self.learning_rate * weights_gradient
+        self.bias = self.bias - self.learning_rate * bias_gradient
+        return gradient.dot(W.T)
 
     def assert_nan(self, x: NpArray, z: NpArray) -> None:
         if gbl_assert_nan:
             # Assertions to check for NaN in weights and biases
             assert not np.isnan(x).any()
             assert not np.isnan(z).any()
+            assert not np.isinf(x).any()
+            assert not np.isinf(z).any()
             self.assert_members_nan()
 
     def assert_members_nan(self):
-        assert not np.isnan(self.weights).any()
-        assert not np.isnan(self.bias).any()
+        if gbl_assert_nan:
+            assert not np.isnan(self.weights).any()
+            assert not np.isnan(self.bias).any()
+            assert not np.isinf(self.weights).any()
+            assert not np.isinf(self.bias).any()
