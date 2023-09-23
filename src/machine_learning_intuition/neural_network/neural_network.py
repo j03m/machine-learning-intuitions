@@ -16,10 +16,11 @@ class NeuralNetwork:
                  activation_functions: Union[List[ActivationFunction], None] = None,
                  loss_function: Loss = MSE(),
                  learning_rate: float = 0.01,
-                 init_functions: Union[List[InitFunction], None] = None):
+                 init_functions: Union[List[InitFunction], None] = None,
+                 clipping: Union[int, None] = None):
 
         self.loss_function = loss_function
-
+        self.clipping = clipping
         if activation_functions is None:
             activation_functions = [Linear()] * (len(layers) - 1)
 
@@ -35,7 +36,8 @@ class NeuralNetwork:
             output_spec = layers[i + 1]
             activation_function = activation_functions[i]
             init_function = init_functions[i]
-            layer = Layer(input_spec, output_spec, learning_rate, activation_function, init_function)
+            layer = Layer(input_spec, output_spec, learning_rate, activation_function, init_function,
+                          clipping=self.clipping)
             self.layers.append(layer)
         self.learning_rate = learning_rate
 
@@ -47,7 +49,7 @@ class NeuralNetwork:
 
     def train(self, x: NpArray, y: NpArray, epochs: int = 1000, patience_limit: int = 500, warm_up_epochs: int = 500,
               verbose=True):
-        # todo: should this be LAST value loss instead?
+
         best_val_loss = float64('inf')
         patience_counter = 0
 
@@ -77,6 +79,8 @@ class NeuralNetwork:
 
     def backwards_propagate(self, gradient: NpArray):
         loss_gradient = gradient
+        if self.clipping is not None:
+            np.clip(loss_gradient, -self.clipping, self.clipping, out=loss_gradient)
         for layer in reversed(self.layers):
             loss_gradient = layer.backwards_pass(loss_gradient)
 

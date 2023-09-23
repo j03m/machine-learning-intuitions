@@ -1,9 +1,8 @@
 import numpy as np
-from numpy import ndarray, float64
 from machine_learning_intuition.types import NpArray
 from .activation_function import ActivationFunction, Linear
 from .initialization_function import InitFunction, He
-from typing import Optional
+from typing import Optional, Union
 import os
 
 gbl_assert_nan = bool(os.environ.get('ASSERT_NAN', False))
@@ -15,7 +14,8 @@ class Layer():
                  output_units: int,
                  learning_rate: float = 0.01,
                  activation_function: ActivationFunction = Linear(),
-                 init_function: InitFunction = He()):
+                 init_function: InitFunction = He(),
+                 clipping: Union[int, None] = None):
         '''
         :param units: number of neurons
         :param input_shape: default is none set based on previous layer
@@ -29,6 +29,7 @@ class Layer():
         self.last_output: Optional[NpArray] = None
         self.activation_function = activation_function
         self.init_function = init_function
+        self.clipping = clipping
         self.weights = self.init_weights()
         self.bias = self.init_bias()
 
@@ -53,13 +54,19 @@ class Layer():
         weights_gradient = self.last_input.T.dot(delta)
         bias_gradient = np.sum(delta, axis=0)
         self.weights -= self.learning_rate * weights_gradient
+        if self.clipping is not None:
+            np.clip(self.weights, -self.clipping, self.clipping, out=self.weights)
         self.bias -= self.learning_rate * bias_gradient
+        self.assert_members_nan()
         return delta.dot(self.weights.T)
 
     def assert_nan(self, x: NpArray, z: NpArray) -> None:
         if gbl_assert_nan:
             # Assertions to check for NaN in weights and biases
-            assert not np.isnan(self.weights).any()
-            assert not np.isnan(self.bias).any()
             assert not np.isnan(x).any()
             assert not np.isnan(z).any()
+            self.assert_members_nan()
+
+    def assert_members_nan(self):
+        assert not np.isnan(self.weights).any()
+        assert not np.isnan(self.bias).any()

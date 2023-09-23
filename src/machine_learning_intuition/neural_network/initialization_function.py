@@ -52,3 +52,12 @@ class Lecun(InitFunction):
     @property
     def name(self):
         return "lecun"
+
+@export_named_thing(all_init_functions)
+class Random(InitFunction):
+    def __call__(self, input_units: int, output_units: int) -> NpArray:
+        return np.random.randn(input_units, output_units)
+
+    @property
+    def name(self):
+        return "lecun"
