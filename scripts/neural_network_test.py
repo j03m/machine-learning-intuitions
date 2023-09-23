@@ -24,7 +24,8 @@ if __name__ == "__main__":
         y = convert_samples_to_np_array(y)
 
         # Initialize and train the neural network
-        nn = NeuralNetwork([1, 4, 3, 2, 1], activation_functions=[ReLU, ReLU, ReLU, Linear])
+        nn = NeuralNetwork([1, 4, 3, 2, 1],
+                           activation_functions=[ReLU(), ReLU(), ReLU(), Linear()])
         X_test, y_test = generate_data(num_samples=1)
         X_test = convert_samples_to_np_array(X_test)
         y_test = convert_samples_to_np_array(y_test)
