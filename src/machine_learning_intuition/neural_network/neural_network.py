@@ -74,8 +74,8 @@ class NeuralNetwork:
         for epoch in range(epochs):
             self.current_epoch = epoch
             for x_val, y_true, index in zip(x, y, range(0, len(x))):
-                x_val = x_val.reshape(-1, 1)
-                y_true = y_true.reshape(-1, 1)
+                x_val = x_val.reshape(1, -1)
+                y_true = y_true.reshape(1, -1)
                 y_pred = self.predict(x_val)
                 loss = self.loss_function(y_true, y_pred)
                 initial_gradient = self.loss_function.derivative(y_true, y_pred)
