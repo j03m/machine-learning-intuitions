@@ -8,7 +8,10 @@ https://github.com/eriklindernoren/ML-From-Scratch <- should be helpful
 
 https://github.com/scikit-learn/scikit-learn/blob/3f6bc8e8153fec8e6d3ffcf4b5a61abc98a96b3c/sklearn/neural_network/_multilayer_perceptron.py#L162
 
+
+THIS was super helpful
 https://ekamperi.github.io/machine%20learning/2021/01/21/encoder-decoder-model.html
+
 
 ### What is an Encoder-Decoder Architecture?
 
