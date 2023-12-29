@@ -42,6 +42,8 @@ class EncoderDecoder(nn.Module):
         self.layers = nn.ModuleList()
         self.encoder = encoder
         self.decoder = decoder
+        self.latent_space_layer = encoder.layers[-1]
+        self.last_latent_space = None
         self.layers.extend(encoder.layers)
         self.layers.extend(decoder.layers)
         self.activation = activation
@@ -49,6 +51,8 @@ class EncoderDecoder(nn.Module):
     def forward(self, x):
         for layer in self.layers[:-1]:
             x = self.activation(layer(x))
+            if layer == self.latent_space_layer:
+                self.last_latent_space = x
         x = self.layers[-1](x)  # no activation for the last layer
         return x
 

@@ -1,5 +1,10 @@
 # Build auto encoder with pytorch
-    * demonstrate working
+    * Get the render right
+        * Its broken, maybe try out a separate script to get it right
+    * Why so slow?
+    * Graph loss vs epoch
+    * animate with mathmatica
+    * clustering stack traces with an autoencoder?
 
 # Intro Chapter
     * Convert to NN

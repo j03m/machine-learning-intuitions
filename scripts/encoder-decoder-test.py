@@ -8,11 +8,9 @@ from torchvision.transforms import ToTensor
 
 from torch.utils.data import DataLoader
 
-from machine_learning_intuition.encode_decoder import Encoder, Decoder, EncoderDecoder
+from machine_learning_intuition.encode_decoder import Encoder, Decoder, EncoderDecoder, TileRenderer
 
 import argparse
-
-import matplotlib.pyplot as plt
 
 import numpy as np
 
@@ -40,22 +38,6 @@ def get_device():
     return device
 
 
-def plot(model, x_test, y_test, rows, cols, tile, device):
-    encoder_model = model.encoder
-    x_test = x_test.to(device)
-    with torch.no_grad():
-        encoder_output = encoder_model(x_test).cpu().numpy()
-
-    plt.subplot(rows, cols, tile)
-    plt.scatter(encoder_output[:, 0], encoder_output[:, 1],
-                s=20, alpha=0.8, cmap='Set1', c=y_test[0:x_test.shape[0]])
-    plt.xlim(-9, 9)
-    plt.ylim(-9, 9)
-    plt.xlabel('Latent Dimension 1')
-    plt.ylabel('Latent Dimension 2')
-
-    return plt
-
 
 def get_model_and_device(args):
     encoder = Encoder(784)  # 28 x 28
@@ -81,9 +63,14 @@ def get_model_and_device(args):
 
 def main(args):
     if args.type == "mnist":
+
         epochs = int(args.epochs)
         mnist_train = MNIST(root='./data',transform=ToTensor(), download=True)
         mnist_test = MNIST(root='./data', train=False, transform=ToTensor())
+
+        tr = TileRenderer(10, 10)
+        interval = epochs // tr.tiles()
+
 
         x_train = mnist_train.data.float() / 255.
         x_train = x_train.view(x_train.size(0), -1)
@@ -120,17 +107,23 @@ def main(args):
             else:
                 patience += 1
 
-            if epoch % 10 == 0:
+            if epoch % interval == 0:
                 print(f"Epoch {epoch}: Loss = {loss.item()}")
-                plot(autoencoder, x_test[0:500], y_test[0:500], int(epochs/10), 10, plot_count, device)
+                device = get_device()
+                output = autoencoder.last_latent_space
+                # these are tensors, we can't plot those
+                tr.plot(y_train[0:500], output[:0], output[:1], plot_count)
+                tr.show()
                 plot_count += 1
 
             if patience > 100:
                 print("Learning seems to have halted")
                 break
 
-        plt.savefig("./data/classes.png")
-        plt.close()
+        tr.close()
+        tr.save("./data/classes.png")
+
+
         torch.save(autoencoder.state_dict(), args.model)
     elif args.type == "render":
         mnist_train = MNIST(root='./data', transform=ToTensor(), download=True)

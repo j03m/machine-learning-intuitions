@@ -12,6 +12,11 @@ https://github.com/scikit-learn/scikit-learn/blob/3f6bc8e8153fec8e6d3ffcf4b5a61a
 THIS was super helpful
 https://ekamperi.github.io/machine%20learning/2021/01/21/encoder-decoder-model.html
 
+https://pytorch.org/tutorials/intermediate/seq2seq_translation_tutorial.html
+
+## vision course
+
+https://arthurdouillard.com/deepcourse/
 
 ### What is an Encoder-Decoder Architecture?
 
