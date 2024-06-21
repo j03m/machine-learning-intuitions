@@ -50,3 +50,9 @@ x1 = torch.unsqueeze(x, 2)
 print("post unsqueeze 2: ", x1, "shape: ", x1.shape)
 x1 = torch.unsqueeze(x, 3)
 print("post unsqueeze 3: ", x1, "shape: ", x1.shape)
+
+x = torch.zeros(5000, 250)
+x1 = x.unsqueeze(0)
+x2 = x1.transpose(0, 1)
+print(x.shape, x1.shape, x2.shape)
+

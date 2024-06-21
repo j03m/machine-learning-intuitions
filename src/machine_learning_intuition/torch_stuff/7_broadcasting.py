@@ -6,6 +6,13 @@ broadcasting is what happens when we operate on matrices with different dimensio
 
 Any operator works (+-*/)
 
+The rules are:
+
+If the tensors have a different number of dimensions, prepend 1s to the shape of the smaller tensor until both have the same number of dimensions.
+ * Starting from the last dimension and moving backward:
+ * If the sizes are the same or one of the dimensions is 1, the operation is allowed.
+ * Otherwise, the operation will fail.
+
 '''
 
 
@@ -73,3 +80,26 @@ b = np.ones((1, 6))     # Shape (1, 6)
 # Broadcasting operation
 result = a * b
 print("Result shape:", result.shape)  # Should be (5, 6)
+
+
+# pre-pending rule in action:
+
+import torch
+
+# Example tensors - when I first learned about this stuff I thought this would fail,
+# but it doesn't because we prepend 1 - so it becomes (500, 1) * (1, 125)
+tensor_a = torch.randn(500, 1)
+tensor_b = torch.randn(125)
+
+# Element-wise multiplication
+result = tensor_a * tensor_b
+
+# The resulting shape will be (500, 125)
+print(result.shape)  # Output: torch.Size([500, 125])
+
+
+# 10, 1, 5
+a = torch.arange(50).reshape(10, 1, 5)
+b = torch.arange(50).reshape(10, 5, 1)
+c = a + b
+print(c.shape)
